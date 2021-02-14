@@ -36,7 +36,11 @@
         <legend>Binario</legend>
         <div style="display: flex; align-items: center; column-gap: 0.5rem">
           <label>
-            <input type="checkbox" v-model="isBinarySigned" />
+            <input
+              type="checkbox"
+              @change="updateFromBinary(asBinaryNumber)"
+              v-model="isBinarySigned"
+            />
             Assinado
           </label>
           <span>|</span>

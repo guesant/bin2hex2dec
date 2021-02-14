@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>bin2hex2dec</title>
+    <style>
+      *,
+      *::after,
+      *::before {
+        box-sizing: border-box;
+      }
+      #app {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 100vh;
+      }
+      #app > fieldset {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+      }
+      #app > fieldset > textarea {
+        flex: 1;
+        font-size: 3rem;
+        text-align: center;
+        padding: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <fieldset>
+        <legend>Binario</legend>
+        <div style="display: flex; align-items: center; column-gap: 0.5rem">
+          <label>
+            <input type="checkbox" v-model="isBinarySigned" />
+            Assinado
+          </label>
+          <span>|</span>
+          <label>
+            Tamanho (bits):
+            <input type="number" v-model.number="binaryBits" />
+          </label>
+          <span>|</span>
+          <span style="text-align: center"> {{binaryRange.join(" - ")}} </span>
+          <span>|</span>
+
+          <button @click="updateFromBinary(asBinaryNumber)">Recarregar</button>
+        </div>
+
+        <textarea
+          type="text"
+          :value="asBinaryNumber"
+          @input="updateFromBinary($event.target.value)"
+        ></textarea>
+      </fieldset>
+      <fieldset>
+        <legend>Hexadecimal</legend>
+        <div>
+          <button @click="updateFromHex(asHexadecimalNumber)">
+            Recarregar
+          </button>
+        </div>
+        <textarea
+          type="text"
+          :value="asHexadecimalNumber"
+          @input="updateFromHex($event.target.value)"
+        ></textarea>
+      </fieldset>
+
+      <fieldset>
+        <legend>Decimal</legend>
+        <div>
+          <button @click="updateFromDecimal(asDecimalNumber)">
+            Recarregar
+          </button>
+        </div>
+        <textarea type="text" v-model="asDecimalNumber"></textarea>
+      </fieldset>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <script type="module">
+      import * as Binary from "/bin2hex2dec/js/Binary.js";
+      import { formatBin, formatHex } from "/bin2hex2dec/js/NumbersImproved.js";
+      new Vue({
+        el: "#app",
+        computed: {
+          asHexadecimalNumber() {
+            const isNegative = +this.asDecimalNumber < 0;
+            const hexRepresentation = Math.abs(+this.asDecimalNumber)
+              .toString(16)
+              .toUpperCase();
+            return [isNegative ? "-" : "", "0x", hexRepresentation].join("");
+          },
+          asBinaryNumber() {
+            return this.isBinarySigned
+              ? Binary.toSignedBinary(this.asDecimalNumber, this.binaryBits)
+              : Binary.toUnsignedBinary(this.asDecimalNumber, this.binaryBits);
+          },
+          binaryRange() {
+            return Binary.getRange(this.binaryBits, this.isBinarySigned);
+          },
+        },
+        data: {
+          binaryBits: 8,
+          isBinarySigned: false,
+          asDecimalNumber: 255,
+        },
+        methods: {
+          updateFromDecimal(dec) {
+            this.asDecimalNumber = parseInt(dec, 10);
+          },
+          updateFromHex(hex) {
+            this.asDecimalNumber = parseInt(formatHex(hex), 16);
+          },
+          updateFromBinary(bin) {
+            this.asDecimalNumber = ((b) =>
+              this.isBinarySigned
+                ? Binary.fromSignedBinary(b, this.binaryBits)
+                : Binary.fromUnsignedBinary(b, this.binaryBits))(
+              formatBin(bin),
+            );
+          },
+        },
+      });
+    </script>
+  </body>
+</html>
